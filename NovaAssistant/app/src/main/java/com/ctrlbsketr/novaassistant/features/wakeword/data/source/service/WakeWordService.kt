@@ -597,11 +597,8 @@ class WakeWordService : Service() {
      * This optimizes audio routing for the new device and forces routing updates.
      */
     private fun handleAudioDeviceChange() {
-        android.util.Log.d("WakeWordService", "=== HANDLING AUDIO DEVICE CHANGE ===")
-
         // If service is not running, no action needed
         if (porcupineManager == null) {
-            android.util.Log.d("WakeWordService", "Service not active, skipping device change handling")
             return
         }
 
@@ -616,8 +613,6 @@ class WakeWordService : Service() {
         val preferredDevice = audioDeviceManager?.getPreferredCommunicationDevice()
         android.util.Log.i("WakeWordService", "Switched to audio device: ${preferredDevice?.name} (${preferredDevice?.type})")
         android.util.Log.i("WakeWordService", "Audio mode: ${audioDeviceManager?.getCurrentAudioMode()}")
-
-        android.util.Log.d("WakeWordService", "===================================")
 
         // Note: With COMMUNICATION mode, AudioRecord automatically follows system routing
         // Android will route audio to the preferred communication device (headphones, Bluetooth, etc.)

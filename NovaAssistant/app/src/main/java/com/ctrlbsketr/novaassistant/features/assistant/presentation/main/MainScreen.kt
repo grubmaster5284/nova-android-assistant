@@ -66,19 +66,9 @@ fun MainScreen(
     // Play audio feedback when wake word is detected
     LaunchedEffect(wakeWordEvent?.timestamp) {
         wakeWordEvent?.let { event ->
-            android.util.Log.d("MainScreen", "=== WAKE WORD EVENT RECEIVED IN UI ===")
-            android.util.Log.d("MainScreen", "Keyword: ${event.keyword}")
-            android.util.Log.d("MainScreen", "Timestamp: ${event.timestamp}")
-            android.util.Log.d("MainScreen", "Confidence: ${event.confidence}")
-            android.util.Log.d("MainScreen", "Audio feedback enabled: ${uiState.settings.enableAudioFeedback}")
-
             if (uiState.settings.enableAudioFeedback) {
-                android.util.Log.d("MainScreen", "Playing audio feedback...")
                 SoundPlayer.playBing()
-                android.util.Log.d("MainScreen", "Audio feedback played")
             }
-
-            android.util.Log.d("MainScreen", "======================================")
         }
     }
 

@@ -76,15 +76,6 @@ class MainViewModel @Inject constructor(
 
     // Observe wake word events
     val wakeWordEvents: StateFlow<WakeWordEvent?> = observeWakeWordEvents()
-        .also { flow ->
-            viewModelScope.launch {
-                flow.collect { event ->
-                    android.util.Log.d("MainViewModel", "=== WAKE WORD EVENT IN VIEWMODEL ===")
-                    android.util.Log.d("MainViewModel", "Event: $event")
-                    android.util.Log.d("MainViewModel", "===================================")
-                }
-            }
-        }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),

@@ -31,21 +31,12 @@ class ObserveWakeWordEventsUseCase @Inject constructor(
             wakeWordRepository.observeWakeWordEvents(),
             settingsRepository.observeSettings()
         ) { event, settings ->
-            android.util.Log.d("ObserveWakeWordEvents", "=== WAKE WORD EVENT IN USE CASE ===")
-            android.util.Log.d("ObserveWakeWordEvents", "Event: $event")
-            android.util.Log.d("ObserveWakeWordEvents", "Sensitivity threshold: ${settings.wakeSensitivity}")
-            android.util.Log.d("ObserveWakeWordEvents", "Meets threshold: ${event.meetsThreshold(settings.wakeSensitivity)}")
-
             // Only emit events that meet the sensitivity threshold
-            val result = if (event.meetsThreshold(settings.wakeSensitivity)) {
+            if (event.meetsThreshold(settings.wakeSensitivity)) {
                 event
             } else {
                 null
             }
-
-            android.util.Log.d("ObserveWakeWordEvents", "Emitting: $result")
-            android.util.Log.d("ObserveWakeWordEvents", "===================================")
-            result
         }.filterNotNull()
     }
 }

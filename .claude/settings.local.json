@@ -4,7 +4,19 @@
       "WebSearch",
       "Bash(./gradlew assembleDebug:*)",
       "Bash(xargs:*)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(tree:*)",
+      "Bash(wc:*)",
+      "Bash(git add:*)",
+      "Bash(find:*)",
+      "Bash(for file in features/assistant/presentation/main/components/*.kt)",
+      "Bash(do sed -i '' 's/package com\\\\.ctrlbsketr\\\\.novaassistant\\\\.presentation\\\\.main\\\\.components/package com.ctrlbsketr.novaassistant.features.assistant.presentation.main.components/' \"$file\")",
+      "Bash(done)",
+      "Bash(grep:*)",
+      "Bash(git rm:*)",
+      "Bash(./gradlew test:*)",
+      "Bash(./NovaAssistant/gradlew:*)",
+      "Bash(./gradlew compileDebugKotlin:*)"
     ]
   }
 }

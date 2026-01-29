@@ -9,7 +9,11 @@ import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -19,6 +23,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
+import com.ctrlbsketr.novaassistant.core.theme.NovaAssistantTheme
+import com.ctrlbsketr.novaassistant.core.ui.preview.LightPreview
+import com.ctrlbsketr.novaassistant.core.ui.preview.ThemePreviews
 
 /**
  * Circular action button with subtle press animation and ripple.
@@ -74,6 +81,72 @@ fun CircularActionButton(
                     scaleY = scale
                 }
         )
+    }
+}
+
+// ========================================
+// Previews
+// ========================================
+
+@ThemePreviews
+@Composable
+private fun CircularActionButtonPreview_Active() {
+    NovaAssistantTheme {
+        Surface {
+            CircularActionButton(
+                icon = Icons.Default.Mic,
+                contentDescription = "Microphone",
+                onClick = {},
+                isActive = true
+            )
+        }
+    }
+}
+
+@ThemePreviews
+@Composable
+private fun CircularActionButtonPreview_Inactive() {
+    NovaAssistantTheme {
+        Surface {
+            CircularActionButton(
+                icon = Icons.Default.Settings,
+                contentDescription = "Settings",
+                onClick = {},
+                isActive = false
+            )
+        }
+    }
+}
+
+@LightPreview
+@Composable
+private fun CircularActionButtonPreview_AllStates() {
+    NovaAssistantTheme {
+        Surface {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier.padding(16.dp)
+            ) {
+                CircularActionButton(
+                    icon = Icons.Default.Mic,
+                    contentDescription = "Mic Active",
+                    onClick = {},
+                    isActive = true
+                )
+                CircularActionButton(
+                    icon = Icons.Default.Stop,
+                    contentDescription = "Stop Inactive",
+                    onClick = {},
+                    isActive = false
+                )
+                CircularActionButton(
+                    icon = Icons.Default.Settings,
+                    contentDescription = "Settings",
+                    onClick = {},
+                    isActive = true
+                )
+            }
+        }
     }
 }
 

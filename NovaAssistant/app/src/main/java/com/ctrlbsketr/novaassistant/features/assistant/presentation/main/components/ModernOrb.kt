@@ -2,7 +2,11 @@ package com.ctrlbsketr.novaassistant.features.assistant.presentation.main.compon
 
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -16,6 +20,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.ctrlbsketr.novaassistant.features.assistant.domain.model.AssistantState
 import com.ctrlbsketr.novaassistant.features.wakeword.domain.model.WakeWordEvent
+import com.ctrlbsketr.novaassistant.core.theme.NovaAssistantTheme
+import com.ctrlbsketr.novaassistant.core.ui.preview.DarkPreview
+import com.ctrlbsketr.novaassistant.core.ui.preview.LightPreview
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlin.math.min
@@ -273,4 +280,114 @@ private operator fun <A, B, C, D> Quadruple<A, B, C, D>.component1() = first
 private operator fun <A, B, C, D> Quadruple<A, B, C, D>.component2() = second
 private operator fun <A, B, C, D> Quadruple<A, B, C, D>.component3() = third
 private operator fun <A, B, C, D> Quadruple<A, B, C, D>.component4() = fourth
+
+// ========================================
+// Previews
+// ========================================
+
+@DarkPreview
+@Composable
+private fun ModernOrbPreview_Idle() {
+    NovaAssistantTheme {
+        Box(
+            modifier = Modifier
+                .background(Color.Black)
+                .padding(16.dp)
+        ) {
+            ModernOrb(
+                assistantState = AssistantState.Idle,
+                wakeWordEvent = null,
+                size = 200.dp
+            )
+        }
+    }
+}
+
+@DarkPreview
+@Composable
+private fun ModernOrbPreview_Listening() {
+    NovaAssistantTheme {
+        Box(
+            modifier = Modifier
+                .background(Color.Black)
+                .padding(16.dp)
+        ) {
+            ModernOrb(
+                assistantState = AssistantState.Listening,
+                wakeWordEvent = null,
+                size = 200.dp
+            )
+        }
+    }
+}
+
+@DarkPreview
+@Composable
+private fun ModernOrbPreview_Processing() {
+    NovaAssistantTheme {
+        Box(
+            modifier = Modifier
+                .background(Color.Black)
+                .padding(16.dp)
+        ) {
+            ModernOrb(
+                assistantState = AssistantState.Processing,
+                wakeWordEvent = null,
+                size = 200.dp
+            )
+        }
+    }
+}
+
+@DarkPreview
+@Composable
+private fun ModernOrbPreview_Error() {
+    NovaAssistantTheme {
+        Box(
+            modifier = Modifier
+                .background(Color.Black)
+                .padding(16.dp)
+        ) {
+            ModernOrb(
+                assistantState = AssistantState.Error("Error"),
+                wakeWordEvent = null,
+                size = 200.dp
+            )
+        }
+    }
+}
+
+@LightPreview
+@Composable
+private fun ModernOrbPreview_AllStates() {
+    NovaAssistantTheme {
+        Row(
+            modifier = Modifier
+                .background(Color.Black)
+                .padding(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            ModernOrb(
+                assistantState = AssistantState.Idle,
+                wakeWordEvent = null,
+                size = 100.dp
+            )
+            ModernOrb(
+                assistantState = AssistantState.Listening,
+                wakeWordEvent = null,
+                size = 100.dp
+            )
+            ModernOrb(
+                assistantState = AssistantState.Processing,
+                wakeWordEvent = null,
+                size = 100.dp
+            )
+            ModernOrb(
+                assistantState = AssistantState.Error("Error"),
+                wakeWordEvent = null,
+                size = 100.dp
+            )
+        }
+    }
+}
 

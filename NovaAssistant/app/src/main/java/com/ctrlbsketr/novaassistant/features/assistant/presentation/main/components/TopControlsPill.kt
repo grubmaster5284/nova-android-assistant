@@ -8,6 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -16,6 +17,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.ctrlbsketr.novaassistant.core.theme.NovaAssistantTheme
+import com.ctrlbsketr.novaassistant.core.ui.preview.ThemePreviews
+import com.ctrlbsketr.novaassistant.core.ui.preview.LightPreview
 
 /**
  * Compact top control pill with settings, volume, and captions icons.
@@ -66,6 +70,36 @@ fun TopControlsPill(
                 .size(18.dp)
                 .clickable(onClick = onSettingsClick)
         )
+    }
+}
+
+// ========================================
+// Previews
+// ========================================
+
+@ThemePreviews
+@Composable
+private fun TopControlsPillPreview() {
+    NovaAssistantTheme {
+        Surface(color = Color.Black) {
+            Box(modifier = Modifier.padding(16.dp)) {
+                TopControlsPill(onSettingsClick = {})
+            }
+        }
+    }
+}
+
+@LightPreview
+@Composable
+private fun TopControlsPillPreview_OnDarkBackground() {
+    NovaAssistantTheme {
+        Box(
+            modifier = Modifier
+                .background(Color.Black)
+                .padding(32.dp)
+        ) {
+            TopControlsPill(onSettingsClick = {})
+        }
     }
 }
 
