@@ -9,7 +9,7 @@ package com.ctrlbsketr.novaassistant.features.settings.domain.model
  * @param wakeWord The wake word phrase to listen for
  * @param enableAudioFeedback Whether to play audio on wake word detection
  * @param enableVisualFeedback Whether to show visual indicator on wake word
- * @param uiImplementation The UI implementation version to use (e.g., "BETA", "ORIGINAL")
+ * @param uiImplementation The UI implementation version to use (e.g., "PRIMARY", "V2")
  */
 data class Settings(
     val isServiceEnabled: Boolean = false,
@@ -17,7 +17,7 @@ data class Settings(
     val wakeWord: String = "hey nova",
     val enableAudioFeedback: Boolean = true,
     val enableVisualFeedback: Boolean = true,
-    val uiImplementation: String = "BETA"
+    val uiImplementation: String = "PRIMARY"
 ) {
     init {
         require(wakeSensitivity in 0.0f..1.0f) {

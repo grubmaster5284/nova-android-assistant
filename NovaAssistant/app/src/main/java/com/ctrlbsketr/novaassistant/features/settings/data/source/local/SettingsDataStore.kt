@@ -50,11 +50,11 @@ class SettingsDataStore @Inject constructor(
     val settingsFlow: Flow<Settings> = dataStore.data.map { preferences ->
         Settings(
             isServiceEnabled = preferences[KEY_SERVICE_ENABLED] ?: false,
-            wakeSensitivity = preferences[KEY_WAKE_SENSITIVITY] ?: 0.5f,
+            wakeSensitivity = preferences[KEY_WAKE_SENSITIVITY] ?: 0.35f,
             wakeWord = preferences[KEY_WAKE_WORD] ?: "hey nova",
             enableAudioFeedback = preferences[KEY_AUDIO_FEEDBACK] ?: true,
             enableVisualFeedback = preferences[KEY_VISUAL_FEEDBACK] ?: true,
-            uiImplementation = preferences[KEY_UI_IMPLEMENTATION] ?: "BETA"
+            uiImplementation = preferences[KEY_UI_IMPLEMENTATION] ?: "PRIMARY"
         )
     }
 
