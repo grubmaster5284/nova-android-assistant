@@ -16,6 +16,13 @@
     <!-- Notification Permission (Required for Foreground Service on API 33+) -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
+    <!-- Bluetooth Permissions (For Bluetooth audio device support) -->
+    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+    <!-- For Android 12+ (API 31+) Bluetooth permissions -->
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+
     <!-- Contact Permissions (Runtime - Dangerous) -->
     <uses-permission android:name="android.permission.READ_CONTACTS" />
 
@@ -51,7 +58,7 @@
 
         <!-- Wake Word Detection Service -->
         <service
-            android:name=".data.service.WakeWordService"
+            android:name=".features.wakeword.data.source.service.WakeWordService"
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="microphone" />

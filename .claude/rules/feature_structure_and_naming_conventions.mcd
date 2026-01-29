@@ -1,0 +1,163 @@
+# **Android Clean Architecture – Project Structure & Naming**
+
+```
+app/src/main/java/com/ctrlbsketr/novaassistant/
+├── di/
+│   ├── AppModule.kt
+│   ├── DataModule.kt
+│   └── FeatureModule.kt
+│
+└── feature_name/
+    ├── domain/
+    │   ├── model/
+    │   │   └── FeatureModel.kt
+    │   ├── repository/
+    │   │   └── FeatureRepository.kt
+    │   ├── FeatureError.kt
+    │   └── usecases/
+    │       └── GetFeatureUseCase.kt
+    │
+    ├── data/
+    │   ├── dto/
+    │   │   └── FeatureDto.kt
+    │   ├── source/
+    │   │   ├── remote/
+    │   │   │   └── FeatureRemoteDataSource.kt
+    │   │   └── local/
+    │   │       └── FeatureLocalDataSource.kt
+    │   ├── repository/
+    │   │   └── FeatureRepositoryImpl.kt
+    │   └── constants/
+    │       └── FeatureApiConstants.kt
+    │
+    └── presentation/
+        ├── FeatureScreen.kt
+        ├── FeatureViewModel.kt
+        └── components/
+            └── FeatureComponent.kt
+```
+
+---
+
+# **Layer Responsibilities**
+
+### **1. Domain Layer**
+
+* **What:** Pure business rules and types
+* **Content:**
+  * Models (immutable data classes)
+  * Repository interfaces
+  * Sealed error types
+  * Use cases (single-responsibility operations)
+* **Rule:** **No Android, Hilt, or HTTP imports** → Pure Kotlin
+
+---
+
+### **2. Data Layer**
+
+* **What:** Implementation of domain contracts (repositories, sources)
+* **Content:**
+  * DTOs with `toDomain()` (or mappers)
+  * Remote and local data sources (API, DB, cache)
+  * Repository implementations (DTO ↔ Domain mapping)
+  * API/endpoint constants
+* **Rule:** **Never expose DTOs** to domain or UI; map in repository
+
+---
+
+### **3. Application / ViewModel**
+
+* **What:** UI state and orchestration
+* **Content:**
+  * **ViewModel** with `StateFlow<UiState>`
+  * Calls **use cases** or **repositories** (injected via Hilt)
+* **Rule:**
+  * Inject dependencies via Hilt
+  * No direct API/DB logic; no UI types (Compose/View) in ViewModel
+
+---
+
+### **4. Presentation Layer**
+
+* **What:** UI only (Jetpack Compose or Views)
+* **Content:**
+  * **Screens** (Composables or Activities/Fragments)
+  * **Components** (reusable Composables or custom views)
+* **Rule:**
+  * Observe state via `viewModel.state.collectAsState()`
+  * Call ViewModel methods for actions
+  * No business logic; no direct repository/use case calls
+
+---
+
+# **State Flow**
+
+```
+[ UI (Screen/Composable) ]
+        |
+   collectAsState() / collect
+        ↓
+[ ViewModel ]
+   StateFlow<FeatureState>
+        |
+   Calls use case / repository (Hilt-injected)
+        ↓
+[ Data Layer ]
+   RepositoryImpl → DataSource → DTO
+        ↓
+[ Domain Layer ]
+   Returns Result<Model, Error> to ViewModel
+        ↓
+[ ViewModel ]
+   Updates _state (Loading → Success / Failure)
+        ↓
+[ UI recomposes ]
+```
+
+---
+
+# **Naming & File Conventions**
+
+### **Files**
+
+* Models → `FeatureModel.kt`
+* Repository interface → `FeatureRepository.kt`
+* Repository impl → `FeatureRepositoryImpl.kt`
+* Errors → `FeatureError.kt`
+* DTOs → `FeatureDto.kt`
+* Data sources → `FeatureRemoteDataSource.kt` / `FeatureLocalDataSource.kt`
+* ViewModel → `FeatureViewModel.kt`
+* Screen → `FeatureScreen.kt`
+* Use case → `GetFeatureUseCase.kt`
+
+### **Classes**
+
+* State → `FeatureState`
+* ViewModel → `FeatureViewModel`
+* Repository interface → `FeatureRepository`
+* Repository impl → `FeatureRepositoryImpl`
+* Screen (Composable) → `FeatureScreen`
+* Use case → `GetFeatureUseCase`
+
+---
+
+# **Best Practices**
+
+1. **Separation of concerns**
+   * Domain: pure, reusable
+   * Data: mapping and I/O
+   * ViewModel: state and orchestration
+   * Presentation: UI only
+
+2. **Error handling**
+   * Use **Result\<T, E>** or sealed outcomes in domain/data
+   * Map infrastructure errors to domain errors in repository
+
+3. **Testability**
+   * Fake repositories and use cases in tests
+   * Test state transitions and error paths
+   * Keep UI testable (Compose testing or Espresso)
+
+4. **Consistency**
+   * Mirror structure across features (domain / data / presentation)
+   * Align `test/` with `src/` package layout

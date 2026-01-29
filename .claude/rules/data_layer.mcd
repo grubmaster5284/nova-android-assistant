@@ -1,0 +1,191 @@
+# **Data Layer Guidelines (Android/Kotlin)**
+
+## **Directory Structure**
+
+```
+app/src/main/java/com/ctrlbsketr/novaassistant/
+  └── feature_name/
+      └── data/
+          ├── dto/
+          │    └── FeatureDto.kt
+          ├── source/
+          │    ├── remote/
+          │    │    └── FeatureRemoteDataSource.kt
+          │    └── local/
+          │         └── FeatureLocalDataSource.kt
+          ├── repository/
+          │    └── FeatureRepositoryImpl.kt
+          └── constants/
+               └── FeatureApiConstants.kt
+```
+
+---
+
+### **Responsibilities by Folder**
+
+1. **`dto/`**
+
+   * Mirrors API/DB schema
+   * Provides **toDomain()** (or mapper) conversion to domain models
+   * Use **data class** (immutable where possible) and optional serialization (e.g. `@SerializedName`)
+
+2. **`source/`**
+
+   * **remote/** → Retrofit, OkHttp, or other HTTP/API calls; optional offline cache
+   * **local/** → DataStore, Room, SharedPreferences, or file cache
+   * Handle **raw data access only**, no business logic
+
+3. **`repository/`**
+
+   * Implements **domain repository interfaces** (e.g. `FeatureRepository`)
+   * Handles **DTO → Domain mapping**
+   * Converts **data errors → domain errors**
+   * **Only entry point** from data layer to domain
+
+4. **`constants/`**
+
+   * Central place for **endpoints, paths, and non-secret config**
+   * No secrets hardcoded in production (use BuildConfig or local.properties)
+   * Use `object` or `const` for paths and base URLs
+
+---
+
+## **DTO Conventions**
+
+1. **Requirements**
+
+   * Prefer **immutable** `data class` with `val`
+   * Provide `toDomain()` (or a mapper) for domain models
+   * Use **strong types**; avoid raw `Any`/`Map` in public API
+   * Handle **nullable fields** and default values for safe empty states
+
+2. **Example**
+
+```kotlin
+data class FeatureDto(
+    val id: String = "",
+    val name: String = "",
+    @SerializedName("is_active") val isActive: Boolean = false,
+    val description: String = "",
+    val tags: List<String> = emptyList(),
+    @SerializedName("created_at") val createdAt: String = "",
+    @SerializedName("updated_at") val updatedAt: String = "",
+) {
+    fun toDomain(): FeatureModel = FeatureModel(
+        id = id,
+        name = name,
+        isActive = isActive,
+        description = description,
+        tags = tags,
+        createdAt = createdAt,
+        updatedAt = updatedAt,
+    )
+}
+```
+
+---
+
+## **DataSource Conventions**
+
+1. **Responsibilities**
+
+   * Perform **raw data access only**
+   * Remote → API calls (Retrofit/OkHttp) with optional caching
+   * Local → DB/cache access (Room, DataStore, etc.)
+   * Return **DTOs** or raw types; do not expose domain models
+   * Handle **errors** and map to domain where appropriate (or let repository do it)
+
+2. **Method Rules**
+
+   * Prefer **suspend** for async; use **Result** or **sealed class** for fallible operations
+   * **No domain logic** in data sources
+   * **Do not leak DTOs** outside the data layer (map in repository)
+   * Use **retry/timeout** where appropriate
+   * Add **logging** for debugging
+
+3. **Example Remote DataSource**
+
+```kotlin
+class FeatureRemoteDataSource @Inject constructor(
+    private val api: FeatureApi,
+) {
+    suspend fun fetchFeature(id: String): Result<FeatureDto?> = runCatching {
+        api.getFeature(id).getOrNull()?.let { FeatureDto.from(it) }
+    }.fold(
+        onSuccess = { Result.success(it) },
+        onFailure = { Result.failure(it) },
+    )
+}
+```
+
+---
+
+## **Repository Implementation Conventions**
+
+1. Implements **domain repository interface** (e.g. `FeatureRepository`)
+2. Converts **DTO → Domain** and **Data Errors → Domain Errors**
+3. Returns **Result\<T, E>** or **sealed class** for operations
+4. **Only entry point** from data layer to domain
+5. Can coordinate **local cache** and **remote** (e.g. cache-first or network-first)
+
+**Example:**
+
+```kotlin
+class FeatureRepositoryImpl @Inject constructor(
+    private val remote: FeatureRemoteDataSource,
+    private val local: FeatureLocalDataSource,
+) : FeatureRepository {
+
+    override suspend fun getFeature(id: FeatureId): Result<FeatureModel, FeatureError> {
+        local.getFeature(id.value)?.toDomain()?.let { return Result.success(it) }
+        return remote.fetchFeature(id.value)
+            .map { it?.toDomain() ?: return Result.failure(FeatureError.NotFound) }
+            .mapError { mapToFeatureError(it) }
+    }
+}
+```
+
+---
+
+## **API Constants**
+
+1. **File:** e.g. `FeatureApiConstants.kt` or in BuildConfig
+2. Use **const** or **object** for paths and base URLs
+3. No **real secrets** in source (use BuildConfig or local.properties)
+
+**Example:**
+
+```kotlin
+object FeatureApiConstants {
+    const val FEATURE_ENDPOINT = "/features"
+    fun featureById(id: String) = "$FEATURE_ENDPOINT/$id"
+}
+```
+
+---
+
+## **Naming Conventions**
+
+**Files:**
+
+* DTO → `FeatureDto.kt`
+* Remote/Local → `FeatureRemoteDataSource.kt` / `FeatureLocalDataSource.kt`
+* Repository impl → `FeatureRepositoryImpl.kt`
+* Constants → `FeatureApiConstants.kt`
+
+**Classes:**
+
+* DTO → PascalCase + `Dto`
+* Data sources → PascalCase + `RemoteDataSource` / `LocalDataSource`
+* Repository impl → PascalCase + `RepositoryImpl`
+
+---
+
+## **Best Practices**
+
+1. **Data layer never exposes DTOs** to domain or UI; map in repository
+2. **Error mapping:** API/DB exceptions → domain error types (e.g. `FeatureError`)
+3. **No business logic** in data layer
+4. **Repository is the only entry point** from data to domain
+5. Use **Hilt** (or your DI) for testability and swapping implementations
+6. Prefer **suspend** and **Result** or sealed outcomes for async and errors

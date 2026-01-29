@@ -1,0 +1,147 @@
+# **Domain Layer Guidelines (Android/Kotlin)**
+
+## **Directory Structure**
+
+```
+app/src/main/java/com/ctrlbsketr/novaassistant/
+  └── feature_name/
+      └── domain/
+          ├── model/
+          │    └── FeatureModel.kt
+          ├── repository/
+          │    └── FeatureRepository.kt          # Interface
+          ├── FeatureError.kt                    # Sealed class or sealed interface
+          └── usecases/
+               └── GetFeatureUseCase.kt
+```
+
+* **`model/`** → Domain models (immutable data classes)
+* **`repository/`** → Interfaces only; implemented in data layer
+* **FeatureError** → Sealed class/interface for domain errors
+* **`usecases/`** → Single-responsibility operations used by ViewModels
+
+---
+
+## **Domain Conventions**
+
+### **1. Model (Entity) Structure**
+
+* Must:
+  * Be **immutable** (`data class` with `val`)
+  * Provide **default values** for safe empty states where needed
+* Prefer **strong types** (value classes or wrapper types for IDs where useful)
+
+---
+
+### **2. Value Types (Optional)**
+
+* Use **value class** or small data classes for IDs and critical fields
+* Validate in constructor or factory
+
+Example:
+
+```kotlin
+@JvmInline
+value class FeatureId(val value: String) {
+    init {
+        require(value.isNotBlank()) { "Feature ID cannot be empty" }
+    }
+}
+```
+
+---
+
+### **3. Repository Interface**
+
+* Define **clear contracts**; prefix with interface name (e.g. `FeatureRepository`)
+* Methods:
+  * Use **suspend** for async operations
+  * Return **Result\<T, E>** or a sealed class where T = success type, E = domain error type
+* Document **errors** and behavior where non-obvious
+
+Example:
+
+```kotlin
+interface FeatureRepository {
+    suspend fun getFeature(id: FeatureId): Result<FeatureModel, FeatureError>
+    suspend fun createFeature(feature: FeatureModel): Result<FeatureModel, FeatureError>
+    suspend fun updateFeature(feature: FeatureModel): Result<FeatureModel, FeatureError>
+    suspend fun deleteFeature(id: FeatureId): Result<Unit, FeatureError>
+}
+```
+
+---
+
+### **4. Error Handling**
+
+* Use **sealed class** or **sealed interface** for domain errors
+* Keeps handling **type-safe** and explicit
+
+Example:
+
+```kotlin
+sealed interface FeatureError {
+    data object NotFound : FeatureError
+    data class Validation(val message: String) : FeatureError
+    data class Unknown(val message: String) : FeatureError
+    data object Timeout : FeatureError
+    data object TooManyRequests : FeatureError
+}
+```
+
+---
+
+### **5. Naming Conventions**
+
+**Files:**
+
+* Models → `FeatureModel.kt` (or `_model.kt` suffix)
+* Repository interface → `FeatureRepository.kt`
+* Errors → `FeatureError.kt`
+* Use cases → `GetFeatureUseCase.kt`
+
+**Classes:**
+
+* Models → PascalCase + `Model` (or entity name)
+* Repository → PascalCase + `Repository`
+* Errors → PascalCase + `Error`
+* Use cases → PascalCase + `UseCase`
+
+---
+
+### **6. Code Organization**
+
+* **One main type per file** where practical (model, interface, error, use case)
+* Keep **domain independent** of:
+  * Android framework (no Context, Activity, etc.)
+  * Hilt/DI annotations in interfaces (only in impl or modules)
+  * UI (Compose, View, etc.)
+
+---
+
+## **Use Cases**
+
+* **Single responsibility:** one use case per operation or flow
+* Invoked by **ViewModel**; use case calls **repository**
+* Keep **pure Kotlin**; optional `operator fun invoke()` for call-site clarity
+
+Example:
+
+```kotlin
+class GetFeatureUseCase @Inject constructor(
+    private val repository: FeatureRepository,
+) {
+    suspend operator fun invoke(id: FeatureId): Result<FeatureModel, FeatureError> =
+        repository.getFeature(id)
+}
+```
+
+---
+
+## **Best Practices**
+
+1. **Models:** Immutable, focused, with safe defaults where needed
+2. **Interfaces:** Minimal, clear contracts; use Result or sealed outcomes for errors
+3. **Use cases:** One clear purpose; orchestrate repository calls for ViewModels
+4. **Errors:** Sealed types for all domain failure cases; map from data layer in repository impl
+5. **Testing:** Domain logic and use cases are easy to unit test with fake repositories

@@ -1,0 +1,150 @@
+# **Presentation Layer Guidelines (Jetpack Compose + ViewModel)**
+
+## **Directory Structure**
+
+```
+app/src/main/java/com/ctrlbsketr/novaassistant/
+  └── feature_name/
+      └── presentation/
+          ├── FeatureScreen.kt
+          ├── FeatureViewModel.kt
+          └── components/
+              └── FeatureComponent.kt
+```
+
+**Responsibilities:**
+
+* **Screen** → Top-level Composable that collects ViewModel state and hosts navigation
+* **ViewModel** → Holds `StateFlow` and handles user actions (injected via Hilt)
+* **components/** → Reusable Composables used by the screen
+
+---
+
+## **Screen Structure**
+
+1. Screens should:
+
+   * Be **Composable** functions (e.g. `FeatureScreen`)
+   * Get ViewModel via **`hiltViewModel()`**
+   * Collect state with **`viewModel.state.collectAsStateWithLifecycle()`** (or `collectAsState()`)
+   * Handle **Loading, Success, and Error** states in the UI
+   * Use **theme and dimension constants** (no magic numbers)
+
+2. Example:
+
+```kotlin
+@Composable
+fun FeatureScreen(
+    viewModel: FeatureViewModel = hiltViewModel(),
+) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+
+    FeatureScreenContent(
+        state = state,
+        onRetry = { viewModel.loadFeature("123") },
+    )
+}
+
+@Composable
+private fun FeatureScreenContent(
+    state: FeatureState,
+    onRetry: () -> Unit,
+) {
+    when (val ds = state.dataState) {
+        is DataState.Loading -> LoadingIndicator()
+        is DataState.Failure -> ErrorContent(onRetry = onRetry)
+        is DataState.Success -> FeatureContent(ds.value)
+        else -> { /* initial */ }
+    }
+}
+```
+
+---
+
+## **Component Structure**
+
+1. Components should:
+
+   * Have **single responsibility**
+   * Be **stateless** where possible (state passed in as parameters)
+   * Use **theme** (MaterialTheme, project Theme/Color/Type)
+   * Be **pure UI**; no direct repository or use case calls
+
+2. Example:
+
+```kotlin
+@Composable
+fun FeatureContent(
+    feature: FeatureModel,
+    modifier: Modifier = Modifier,
+) {
+    Card(
+        modifier = modifier,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+    ) {
+        Text(
+            text = feature.name,
+            style = MaterialTheme.typography.bodyLarge,
+        )
+    }
+}
+```
+
+---
+
+## **ViewModel in Compose**
+
+* Use **`hiltViewModel()`** so Hilt creates the ViewModel with the correct scope
+* Collect state once at the screen level and pass **state** and **callbacks** down
+* Use **`LaunchedEffect`** for one-off side effects (e.g. load on first composition) if needed
+
+```kotlin
+@Composable
+fun FeatureScreen(
+    viewModel: FeatureViewModel = hiltViewModel(),
+) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+
+    LaunchedEffect(Unit) {
+        viewModel.loadFeatureIfNeeded()
+    }
+    // ...
+}
+```
+
+---
+
+## **Naming Conventions**
+
+**Files:**
+
+* Screen → `FeatureScreen.kt`
+* ViewModel → `FeatureViewModel.kt`
+* Reusable UI → `FeatureContent.kt` or under `components/`
+
+**Classes / Symbols:**
+
+* Screen Composable → `FeatureScreen`
+* ViewModel → `FeatureViewModel`
+* State → `FeatureState`
+
+---
+
+## **Best Practices**
+
+1. **Layout**
+   * Use **theme and dimensions** from your design system; avoid hard-coded sizes where possible
+
+2. **State**
+   * **Collect state** at the screen; pass **state + callbacks** down to avoid passing ViewModel through many layers
+
+3. **Errors**
+   * Show **user-facing messages** and **retry** where appropriate
+   * Use **sealed/DataState** for clear loading/success/error handling
+
+4. **Recomposition**
+   * Keep **Composables small** and **stable** (avoid unnecessary object creation in composition)
+   * Prefer **remember** and **derivedStateOf** where they reduce recomposition
+
+5. **Testing**
+   * Use **Compose UI tests** or **Espresso** with a test ViewModel/fakes to verify UI states

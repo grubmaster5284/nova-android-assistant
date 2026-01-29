@@ -14,11 +14,11 @@ import androidx.core.content.ContextCompat
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.ctrlbsketr.novaassistant.data.service.WakeWordService
-import com.ctrlbsketr.novaassistant.presentation.MainScreenRouter
-import com.ctrlbsketr.novaassistant.presentation.main.MainViewModel
-import com.ctrlbsketr.novaassistant.presentation.settings.SettingsScreen
-import com.ctrlbsketr.novaassistant.presentation.theme.NovaAssistantTheme
+import com.ctrlbsketr.novaassistant.features.wakeword.data.source.service.WakeWordService
+import com.ctrlbsketr.novaassistant.features.assistant.presentation.MainScreenRouter
+import com.ctrlbsketr.novaassistant.features.assistant.presentation.main.MainViewModel
+import com.ctrlbsketr.novaassistant.features.settings.presentation.SettingsScreen
+import com.ctrlbsketr.novaassistant.core.theme.NovaAssistantTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 /**

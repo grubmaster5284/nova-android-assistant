@@ -1,7 +1,7 @@
 package com.ctrlbsketr.novaassistant
 
 import android.app.Application
-import com.ctrlbsketr.novaassistant.util.SoundPlayer
+import com.ctrlbsketr.novaassistant.features.audio.domain.manager.SoundPlayer
 import dagger.hilt.android.HiltAndroidApp
 
 /**

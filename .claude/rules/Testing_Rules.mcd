@@ -1,0 +1,301 @@
+# **Android Clean Architecture – Testing Guidelines**
+
+---
+
+## **1. General Testing Rules**
+
+1. **Mirror `src/` in `test/`**
+
+   * Test package structure should mirror source package structure:
+
+     ```
+     src/test/java/com/ctrlbsketr/novaassistant/
+       └── feature_name/
+           ├── domain/
+           ├── data/
+           └── presentation/
+     ```
+
+     For instrumented tests:
+
+     ```
+     src/androidTest/java/com/ctrlbsketr/novaassistant/
+       └── feature_name/
+     ```
+
+2. **File Naming**
+
+   * Unit tests: same name as source + `Test` suffix (e.g. `FeatureViewModelTest.kt`)
+   * Or suffix source name with `_test` in some conventions
+   * Integration tests: `FeatureIntegrationTest.kt` or `FeatureRepositoryIntegrationTest.kt`
+
+3. **Test Independence**
+
+   * No shared mutable state between tests
+   * Use `@Before` / `@After` (or JUnit 5 `@BeforeEach` / `@AfterEach`) for setup/teardown
+   * Mock or fake external dependencies (API, DB, DataStore)
+
+4. **Test Types**
+
+   * **Unit tests:** Domain models, use cases, ViewModels, repository implementations (with fakes)
+   * **UI tests:** Compose (ComposeTestRule) or Espresso for screens
+   * **Integration tests:** Real repository with fake/mock data sources
+
+---
+
+## **2. Domain Layer Testing**
+
+**Package:** `test/.../feature_name/domain/`
+
+**What to Test:**
+
+* **Models**
+  * Equality, default values, immutability
+  * Validation in value types (e.g. `FeatureId`)
+* **Errors**
+  * Sealed class variants and equality
+* **Use cases**
+  * Success and failure paths with fake repository
+  * Correct invocation of repository and mapping of results
+
+**Example:**
+
+```kotlin
+class GetFeatureUseCaseTest {
+
+    private val fakeRepository = FakeFeatureRepository()
+    private val useCase = GetFeatureUseCase(fakeRepository)
+
+    @Test
+    fun `invoke returns success when repository returns feature`() = runTest {
+        val id = FeatureId("1")
+        fakeRepository.setFeature(FeatureModel(id = "1", name = "Test"))
+
+        val result = useCase(id)
+
+        assertThat(result.isSuccess).isTrue()
+        assertThat((result as Result.Success).value.name).isEqualTo("Test")
+    }
+
+    @Test
+    fun `invoke returns failure when repository returns error`() = runTest {
+        fakeRepository.setError(FeatureError.NotFound)
+
+        val result = useCase(FeatureId("missing"))
+
+        assertThat(result.isFailure).isTrue()
+    }
+}
+```
+
+---
+
+## **3. Data Layer Testing**
+
+**Package:** `test/.../feature_name/data/`
+
+**What to Test:**
+
+* **DTOs**
+  * `toDomain()` mapping
+  * Nullable/default handling if applicable
+* **Repository implementations**
+  * Map data errors to domain errors
+  * Return success/failure as expected
+  * Cache/remote coordination if applicable
+* **Data sources**
+  * Mock API (e.g. MockWebServer) or fake implementations
+  * Verify request path, method, and body where relevant
+
+**Example:**
+
+```kotlin
+class FeatureRepositoryImplTest {
+
+    private val remote = FakeFeatureRemoteDataSource()
+    private val local = FakeFeatureLocalDataSource()
+    private val repository = FeatureRepositoryImpl(remote, local)
+
+    @Test
+    fun `getFeature returns success when remote returns dto`() = runTest {
+        remote.setResponse(FeatureDto(id = "1", name = "Test"))
+
+        val result = repository.getFeature(FeatureId("1"))
+
+        assertThat(result.isSuccess).isTrue()
+        assertThat((result as Result.Success).value.name).isEqualTo("Test")
+    }
+
+    @Test
+    fun `getFeature returns failure when remote fails`() = runTest {
+        remote.setError(IOException("Network error"))
+
+        val result = repository.getFeature(FeatureId("1"))
+
+        assertThat(result.isFailure).isTrue()
+    }
+}
+```
+
+---
+
+## **4. ViewModel Testing**
+
+**Package:** `test/.../feature_name/presentation/`
+
+**What to Test:**
+
+* **State**
+  * Initial state
+  * Transitions: loading → success, loading → failure
+* **Actions**
+  * Calling load/refresh triggers use case and updates state correctly
+* Use **TestScope** / **runTest** for coroutines; inject **TestDispatcher** if needed
+* Use **fakes** or **mocks** (e.g. MockK) for use cases/repositories
+
+**Example:**
+
+```kotlin
+class FeatureViewModelTest {
+
+    @get:Rule
+    val mainDispatcherRule = MainDispatcherRule()
+
+    private val getFeatureUseCase = mockk<GetFeatureUseCase>()
+    private lateinit var viewModel: FeatureViewModel
+
+    @Before
+    fun setup() {
+        viewModel = FeatureViewModel(getFeatureUseCase)
+    }
+
+    @Test
+    fun `initial state is correct`() = runTest {
+        val state = viewModel.state.value
+
+        assertThat(state.dataState).isEqualTo(DataState.Initial)
+        assertThat(state.isLoading).isFalse()
+    }
+
+    @Test
+    fun `loadFeature emits loading then success`() = runTest {
+        coEvery { getFeatureUseCase(FeatureId("1")) } returns Result.Success(
+            FeatureModel(id = "1", name = "Test")
+        )
+
+        viewModel.loadFeature("1")
+        advanceUntilIdle()
+
+        val state = viewModel.state.value
+        assertThat(state.dataState).isInstanceOf(DataState.Success::class.java)
+        assertThat((state.dataState as DataState.Success).value.name).isEqualTo("Test")
+    }
+
+    @Test
+    fun `loadFeature emits loading then failure`() = runTest {
+        coEvery { getFeatureUseCase(any()) } returns Result.Failure(FeatureError.NotFound)
+
+        viewModel.loadFeature("1")
+        advanceUntilIdle()
+
+        assertThat(viewModel.state.value.dataState).isInstanceOf(DataState.Failure::class.java)
+    }
+}
+```
+
+---
+
+## **5. UI (Compose) Testing**
+
+**Package:** `androidTest/.../` or `test/...` with Compose Test if allowed
+
+**What to Test:**
+
+* **Screens**
+  * Loading, success, and error content appear as expected
+  * Retry or actions call ViewModel (use fake ViewModel or Hilt test modules)
+* **Components**
+  * Correct text, visibility, and interaction
+
+**Example:**
+
+```kotlin
+@HiltAndroidTest
+class FeatureScreenTest {
+
+    @get:Rule(order = 0)
+    val hiltRule = HiltAndroidRule(this)
+
+    @get:Rule(order = 1)
+    val composeTestRule = createAndroidComposeRule<MainActivity>()
+
+    @Test
+    fun loadingState_showsProgressIndicator() {
+        composeTestRule.setContent {
+            FeatureScreenContent(
+                state = FeatureState(dataState = DataState.Loading),
+                onRetry = {},
+            )
+        }
+        composeTestRule.onNodeWithTag("loading").assertIsDisplayed()
+    }
+
+    @Test
+    fun successState_showsContent() {
+        composeTestRule.setContent {
+            FeatureScreenContent(
+                state = FeatureState(
+                    dataState = DataState.Success(FeatureModel(id = "1", name = "Test"))
+                ),
+                onRetry = {},
+            )
+        }
+        composeTestRule.onNodeWithText("Test").assertIsDisplayed()
+    }
+}
+```
+
+---
+
+## **6. Test Helpers and Fakes**
+
+**Package:** `test/.../helpers/` or next to the test
+
+* **Fake implementations** of repositories or data sources that hold in-memory state
+* **Test data builders** (e.g. `FeatureModel.createForTest()`) for consistent data
+* **Hilt test modules** that provide fakes/mocks in `@AndroidTest` and `@HiltAndroidTest`
+
+**Example Fake:**
+
+```kotlin
+class FakeFeatureRepository : FeatureRepository {
+    private var result: Result<FeatureModel, FeatureError> = Result.failure(FeatureError.NotFound)
+
+    fun setResult(value: Result<FeatureModel, FeatureError>) { result = value }
+
+    override suspend fun getFeature(id: FeatureId): Result<FeatureModel, FeatureError> = result
+}
+```
+
+---
+
+## **7. Test Best Practices**
+
+1. **Mock/Fake external dependencies**
+   * Use **MockK** or **Mockito** for mocks; **Fake* classes** for simple deterministic behavior
+   * Avoid mocking domain models; use real or test instances
+
+2. **Coroutines**
+   * Use **runTest** and **TestScope**; inject **UnconfinedTestDispatcher** or **StandardTestDispatcher** for ViewModels that use `viewModelScope`
+
+3. **Cover states**
+   * Loading → Success, Loading → Failure, Idle, Error with retry
+
+4. **Naming**
+   * Use descriptive test names (e.g. `loadFeature_emits_success_when_useCase_returns_feature` or backtick style `invoke returns success when ...`)
+
+5. **Symmetry**
+   * Keep test package structure aligned with source (e.g. `domain/`, `data/`, `presentation/`)
+
+6. **Hilt**
+   * For UI or integration tests, use **@HiltAndroidTest** and **HiltAndroidRule**; replace production modules with **@TestInstallIn** modules that provide fakes/mocks

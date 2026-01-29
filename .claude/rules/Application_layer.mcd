@@ -1,0 +1,168 @@
+# **Application Layer Guidelines (ViewModel + Hilt)**
+
+## **Directory Structure**
+
+```
+app/src/main/java/com/ctrlbsketr/novaassistant/
+  └── feature_name/
+      └── (application logic lives in ViewModel + use cases)
+          ├── domain/usecases/
+          │    └── GetFeatureUseCase.kt
+          └── presentation/
+               └── FeatureViewModel.kt    # State, orchestration, DI via Hilt
+```
+
+**Responsibilities**
+
+* **ViewModel** → Holds UI state (`StateFlow`/`MutableStateFlow`), calls use cases or repositories, exposes one-way data flow
+* **Use cases** (in domain) → Single-responsibility operations invoked by ViewModels
+* **Hilt** → Provides repositories and use cases to ViewModels via `@Inject constructor`
+
+---
+
+## **ViewModel State Structure**
+
+1. State should:
+
+   * Be represented as an **immutable data class** (or sealed class for loading/success/error)
+   * Be exposed as **StateFlow** (read-only) from the ViewModel
+   * Include a clear **initial** state
+   * Provide **derived** or sealed states: Loading, Success, Error (and optionally Idle/Empty)
+
+2. Recommended state example:
+
+```kotlin
+data class FeatureState(
+    val dataState: DataState<FeatureModel> = DataState.Initial,
+    val isRefreshing: Boolean = false,
+) {
+    val isLoading: Boolean get() = dataState is DataState.Loading
+    val hasError: Boolean get() = dataState is DataState.Failure
+    val isSuccess: Boolean get() = dataState is DataState.Success
+}
+
+sealed class DataState<out T> {
+    data object Initial : DataState<Nothing>()
+    data object Loading : DataState<Nothing>()
+    data class Success<T>(val value: T) : DataState<T>()
+    data class Failure(val error: FeatureError) : DataState<Nothing>()
+}
+```
+
+---
+
+## **ViewModel Structure**
+
+1. Use **ViewModel** with **Hilt**:
+
+   * Annotate with `@HiltViewModel`
+   * Inject repositories or use cases via constructor
+   * Expose `StateFlow<FeatureState>` for the UI
+   * Expose functions for user actions (e.g. `loadFeature()`, `refresh()`)
+
+2. ViewModel responsibilities:
+
+   * Call **repositories or use cases** (domain layer)
+   * Update state via `_state.value = ...` or `_state.update { ... }`
+   * **No UI logic** (no Context/Composable); no direct API or DB logic
+
+3. Example:
+
+```kotlin
+@HiltViewModel
+class FeatureViewModel @Inject constructor(
+    private val getFeatureUseCase: GetFeatureUseCase,
+) : ViewModel() {
+
+    private val _state = MutableStateFlow(FeatureState())
+    val state: StateFlow<FeatureState> = _state.asStateFlow()
+
+    fun loadFeature(id: String) {
+        viewModelScope.launch {
+            _state.update { it.copy(dataState = DataState.Loading) }
+            getFeatureUseCase(FeatureId(id))
+                .onSuccess { _state.update { it.copy(dataState = DataState.Success(it)) } }
+                .onFailure { _state.update { it.copy(dataState = DataState.Failure(mapToError(it))) } }
+        }
+    }
+}
+```
+
+---
+
+## **Dependency Injection (Hilt)**
+
+1. Use **Hilt** for DI:
+
+   * `@Inject constructor` in repositories, use cases, and ViewModels
+   * Provide interfaces in **modules** (e.g. `@Binds` for repository impl)
+   * ViewModels are created by Hilt; in Compose use `hiltViewModel()`
+
+2. Example module:
+
+```kotlin
+@Module
+@InstallIn(SingletonComponent::class)
+abstract class FeatureModule {
+
+    @Binds
+    abstract fun bindFeatureRepository(impl: FeatureRepositoryImpl): FeatureRepository
+
+    @Provides
+    @Singleton
+    fun provideGetFeatureUseCase(repo: FeatureRepository): GetFeatureUseCase =
+        GetFeatureUseCase(repo)
+}
+```
+
+---
+
+## **Error Handling**
+
+1. Use **sealed classes** or **DataState** to represent:
+
+   * `Loading`
+   * `Success(value)`
+   * `Failure(error)`
+
+2. Map **domain errors** to UI state and show them in the UI layer.
+
+3. Prefer **typed errors** from the domain layer instead of generic `Exception`.
+
+---
+
+## **Naming Conventions**
+
+**Files:**
+
+* ViewModel → `FeatureViewModel.kt`
+* Use case → `GetFeatureUseCase.kt` (in domain)
+
+**Classes:**
+
+* State → `FeatureState`
+* ViewModel → `FeatureViewModel`
+* Use case → `GetFeatureUseCase`
+
+---
+
+## **Best Practices**
+
+1. **Keep ViewModels focused**
+   * Orchestrate use cases/repositories and hold UI state only
+   * No API or DB logic here
+
+2. **Inject repositories or use cases via Hilt**
+   * Avoid singletons or static access
+
+3. **State is immutable**
+   * Use `data class` + `copy()` or `update { }` for StateFlow
+
+4. **Use StateFlow for UI state**
+   * Single source of truth; UI collects and recomposes on change
+
+5. **Testability**
+   * Override bindings in tests with fakes/mocks
+   * Verify state transitions (loading → success/failure)
+
+---
