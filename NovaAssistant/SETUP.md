@@ -140,7 +140,7 @@ NovaAssistant/
 ├── app/
 │   ├── build.gradle.kts    # Reads .env and injects to BuildConfig
 │   └── src/main/java/
-│       └── com/ctrlbsketr/novaassistant/
+│       └── com/novaassistant/
 │           ├── config/
 │           │   └── AppConfig.kt    # Configuration abstraction
 │           └── ...

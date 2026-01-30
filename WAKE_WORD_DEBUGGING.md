@@ -166,7 +166,7 @@ When wake word is detected:
 
 1. **Start the service** (via app UI or adb):
    ```bash
-   adb shell am startservice -n com.ctrlbsketr.novaassistant/.data.service.WakeWordService
+   adb shell am startservice -n com.novaassistant/.data.service.WakeWordService
    ```
 
 2. **Monitor logs in real-time:**
@@ -197,7 +197,7 @@ Monitor these metrics in logs:
 adb shell dumpsys activity services | grep WakeWordService
 
 # Check app permissions
-adb shell dumpsys package com.ctrlbsketr.novaassistant | grep permission
+adb shell dumpsys package com.novaassistant | grep permission
 
 # Monitor battery usage (wake word should be low)
 adb shell dumpsys batterystats | grep novaassistant

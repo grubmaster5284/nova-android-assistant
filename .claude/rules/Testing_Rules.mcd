@@ -9,7 +9,7 @@
    * Test package structure should mirror source package structure:
 
      ```
-     src/test/java/com/ctrlbsketr/novaassistant/
+     src/test/java/com/novaassistant/
        └── feature_name/
            ├── domain/
            ├── data/
@@ -19,7 +19,7 @@
      For instrumented tests:
 
      ```
-     src/androidTest/java/com/ctrlbsketr/novaassistant/
+     src/androidTest/java/com/novaassistant/
        └── feature_name/
      ```
 

@@ -3,7 +3,7 @@
 ## **Directory Structure**
 
 ```
-app/src/main/java/com/ctrlbsketr/novaassistant/
+app/src/main/java/com/novaassistant/
   └── feature_name/
       └── (application logic lives in ViewModel + use cases)
           ├── domain/usecases/

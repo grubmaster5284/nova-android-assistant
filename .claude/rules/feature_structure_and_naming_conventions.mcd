@@ -1,7 +1,7 @@
 # **Android Clean Architecture – Project Structure & Naming**
 
 ```
-app/src/main/java/com/ctrlbsketr/novaassistant/
+app/src/main/java/com/novaassistant/
 ├── di/
 │   ├── AppModule.kt
 │   ├── DataModule.kt

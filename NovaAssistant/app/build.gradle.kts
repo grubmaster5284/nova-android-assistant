@@ -17,11 +17,11 @@ if (envFile.exists()) {
 }
 
 android {
-    namespace = "com.ctrlbsketr.novaassistant"
+    namespace = "com.novaassistant"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.ctrlbsketr.novaassistant"
+        applicationId = "com.novaassistant"
         minSdk = 34
         targetSdk = 35
         versionCode = 1

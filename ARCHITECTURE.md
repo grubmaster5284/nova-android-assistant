@@ -412,7 +412,7 @@ when (val ds = state.dataState) {
 
 Mirror `src/` in `test/`:
 ```
-src/test/java/com/ctrlbsketr/novaassistant/
+src/test/java/com/novaassistant/
   └── features/
       ├── wakeword/
       │   ├── domain/usecases/StartWakeWordDetectionUseCaseTest.kt

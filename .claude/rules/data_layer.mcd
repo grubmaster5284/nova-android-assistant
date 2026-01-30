@@ -3,7 +3,7 @@
 ## **Directory Structure**
 
 ```
-app/src/main/java/com/ctrlbsketr/novaassistant/
+app/src/main/java/com/novaassistant/
   └── feature_name/
       └── data/
           ├── dto/

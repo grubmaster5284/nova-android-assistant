@@ -1,6 +1,6 @@
 # Nova Assistant - TODO Checklist
 
-**Last Updated:** January 27, 2026  
+**Last Updated:** January 30, 2026  
 **Project:** Nova — Offline Voice Assistant (Experimental POC)
 
 ---
@@ -93,7 +93,7 @@
 - [ ] TTS for responses ("Calling [name]", "Call cancelled")
 - [ ] TTS error messages
 - [ ] TTS latency <300ms for short responses
-- [ ] Stop TTS playback on interrupt (TODO in `BetaMainViewModel.kt`)
+- [ ] Stop TTS playback on interrupt
 
 #### Error Handling
 - [ ] "I didn't catch that" (STT failure)
@@ -110,11 +110,10 @@
 - [ ] Settings persistence (DataStore)
 
 #### UI Polish
-- [ ] Audio feedback beep on wake word (TODO in `BetaMainScreen.kt`)
-- [ ] Error beep sound (TODO in `BetaMainScreen.kt`)
+- [ ] Audio feedback beep on wake word
+- [ ] Error beep sound
 - [ ] Toggle captions functionality (TODO in `TopControlsPill.kt`)
 - [ ] Volume control (TODO in `TopControlsPill.kt`)
-- [ ] Play beep sound via AudioFeedbackManager (TODO in `BetaMainScreen.kt`)
 
 ### Week 6: Testing & Decision
 
@@ -144,23 +143,22 @@
 
 ## Code TODOs (From Codebase)
 
-### BetaMainViewModel.kt
-- [ ] Stop TTS playback on interrupt (line 135)
-- [ ] Start recording user speech after wake word (line 182)
-- [ ] Send to STT and LLM (line 189)
-- [ ] Play TTS for assistant responses (line 199)
-
-### BetaMainScreen.kt
-- [ ] Play beep sound via AudioFeedbackManager (line 82)
-- [ ] Play error beep (line 86)
-
 ### TopControlsPill.kt
-- [ ] Toggle captions functionality (line 46)
-- [ ] Volume control (line 57)
+- [ ] Toggle captions functionality (line 50)
+- [ ] Volume control (line 61)
 
 ### WakeWordService.kt
-- [ ] Add custom notification icon (line 385)
-- [ ] Measure actual battery impact (line 412)
+- [ ] Add custom notification icon (line 551)
+- [ ] Measure actual battery impact (line 578)
+
+### Future Implementation (Post-POC)
+These features will be implemented in later phases:
+- [ ] Stop TTS playback on interrupt
+- [ ] Start recording user speech after wake word detection
+- [ ] Send transcription to STT and LLM
+- [ ] Play TTS for assistant responses
+- [ ] Audio feedback beep on wake word detection
+- [ ] Error beep sound
 
 ---
 

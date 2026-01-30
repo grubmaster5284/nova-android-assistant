@@ -477,7 +477,7 @@ enum class SpeechEngine {
 ## File Structure
 
 ```
-NovaAssistant/app/src/main/java/com/ctrlbsketr/novaassistant/
+NovaAssistant/app/src/main/java/com/novaassistant/
 
 domain/
 ├── models/

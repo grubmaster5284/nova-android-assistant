@@ -301,9 +301,9 @@ private fun MainScreenPreview_Accessibility() { /* ... */ }
 ## 📚 Resources
 
 ### Documentation
-- 📄 **[PREVIEW_README.md](app/src/main/java/com/ctrlbsketr/novaassistant/presentation/components/PREVIEW_README.md)** - Complete guide
-- 🎨 **[PreviewConfiguration.kt](app/src/main/java/com/ctrlbsketr/novaassistant/presentation/components/PreviewConfiguration.kt)** - Multi-preview annotations
-- 🧪 **[PreviewParameterProviders.kt](app/src/main/java/com/ctrlbsketr/novaassistant/presentation/components/PreviewParameterProviders.kt)** - Test data providers
+- 📄 **[PREVIEW_README.md](app/src/main/java/com/novaassistant/presentation/components/PREVIEW_README.md)** - Complete guide
+- 🎨 **[PreviewConfiguration.kt](app/src/main/java/com/novaassistant/presentation/components/PreviewConfiguration.kt)** - Multi-preview annotations
+- 🧪 **[PreviewParameterProviders.kt](app/src/main/java/com/novaassistant/presentation/components/PreviewParameterProviders.kt)** - Test data providers
 
 ### External Links
 - [Android Compose Previews](https://developer.android.com/jetpack/compose/tooling/previews)
